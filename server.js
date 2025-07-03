@@ -36,7 +36,7 @@ app.post('/auth/google',
   passport.authenticate('google', { scope: ['profile', 'email', 'openid', 'https://www.googleapis.com/auth/userinfo.profile '] })
 );
 
-app.get('/auth/google/callback',
+app.ger('/auth/google/callback',
   passport.authenticate('google', { failureRedirect: '/' }),
   async (req, res) => {
     const { refreshToken } = req.user;
@@ -53,7 +53,7 @@ app.get('/auth/google/callback',
       );
 
       if (response.data.success === true) {
-        return res.redirect('https://converterv3.pages.dev/');
+        return res.redirect('https://converterv3.pages.dev');
       } else {
         res.status(500).send('Webhook failed');
       }
