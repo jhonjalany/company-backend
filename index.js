@@ -17,7 +17,7 @@ app.get('/auth/google/callback', async (req, res) => {
         code,
         client_id: process.env.GOOGLE_CLIENT_ID,
         client_secret: process.env.GOOGLE_CLIENT_SECRET,
-        redirect_uri: 'http://127.0.0.1:5500/index.html/auth/google/callback',
+        redirect_uri: 'http://127.0.0.1:5500/auth/google/callback',
         grant_type: 'authorization_code'
       }),
       {
