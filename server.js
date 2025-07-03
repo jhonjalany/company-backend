@@ -32,7 +32,7 @@ app.get('/', (req, res) => {
   res.sendFile(__dirname + '/public/index.html');
 });
 
-app.get('/auth/google',
+app.post('/auth/google',
   passport.authenticate('google', { scope: ['profile', 'email', 'openid', 'https://www.googleapis.com/auth/userinfo.profile '] })
 );
 
