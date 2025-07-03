@@ -36,7 +36,7 @@ app.post('/auth/google',
   passport.authenticate('google', { scope: ['profile', 'email', 'openid', 'https://www.googleapis.com/auth/userinfo.profile '] })
 );
 
-app.ger('/auth/google/callback',
+app.get('/auth/google/callback',
   passport.authenticate('google', { failureRedirect: '/' }),
   async (req, res) => {
     const { refreshToken } = req.user;
