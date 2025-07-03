@@ -1,71 +1,59 @@
-require('dotenv').config();
 const express = require('express');
-const passport = require('passport');
-const GoogleStrategy = require('passport-google-oauth20').Strategy;
-const session = require('express-session');
 const axios = require('axios');
+const qs = require('qs');
+require('dotenv').config();
 
 const app = express();
+const PORT = process.env.PORT || 5000;
 
-// Session setup
-app.use(session({ secret: 'secret-key', resave: false, saveUninitialized: true }));
+app.get('/auth/google/callback', async (req, res) => {
+  const { code } = req.query;
 
-// Passport setup
-passport.use(new GoogleStrategy({
-    clientID: process.env.GOOGLE_CLIENT_ID,
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: "/auth/google/callback"
-  },
-  (token, refreshToken, profile, done) => {
-    return done(null, { profile, refreshToken });
+  try {
+    // Step 1: Exchange code for tokens
+    const tokenResponse = await axios.post(
+      'https://oauth2.googleapis.com/token ',
+      qs.stringify({
+        code,
+        client_id: process.env.GOOGLE_CLIENT_ID,
+        client_secret: process.env.GOOGLE_CLIENT_SECRET,
+        redirect_uri: 'http://127.0.0.1:5500/index.html/auth/google/callback',
+        grant_type: 'authorization_code'
+      }),
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
+      }
+    );
+
+    const { access_token, refresh_token } = tokenResponse.data;
+
+    // Step 2: Get user info
+    const userInfo = await axios.get('https://www.googleapis.com/oauth2/v2/userinfo ', {
+      headers: { Authorization: `Bearer ${access_token}` }
+    });
+
+    const email = userInfo.data.email;
+
+    // Step 3: Trigger n8n webhook
+    const n8nResponse = await axios.post(process.env.N8N_WEBHOOK_URL, {
+      email,
+      refresh_token
+    });
+
+    if (n8nResponse.data.success === true) {
+      return res.redirect('https://converterv3.pages.dev/ ');
+    } else {
+      return res.status(500).send('n8n workflow failed');
+    }
+
+  } catch (err) {
+    console.error(err.message);
+    return res.status(500).send('Authentication failed');
   }
-));
-
-passport.serializeUser((user, done) => done(null, user));
-passport.deserializeUser((obj, done) => done(null, obj));
-
-app.use(passport.initialize());
-app.use(passport.session());
-
-// Routes
-app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/public/index.html');
 });
 
-app.post('/auth/google',
-  passport.authenticate('google', { scope: ['profile', 'email', 'openid', 'https://www.googleapis.com/auth/userinfo.profile '] })
-);
-
-app.get('/auth/google/callback',
-  passport.authenticate('google', { failureRedirect: '/' }),
-  async (req, res) => {
-    const { refreshToken } = req.user;
-    const email = req.user.profile.emails[0].value;
-
-    try {
-      // Send data to n8n webhook
-      const response = await axios.post(
-        'https://n8n-app-gn6h.onrender.com/webhook-test/userdata ',
-        {
-          email,
-          refreshToken
-        }
-      );
-
-      if (response.data.success === true) {
-        return res.redirect('https://converterv3.pages.dev');
-      } else {
-        res.status(500).send('Webhook failed');
-      }
-
-    } catch (error) {
-      console.error('Error sending to webhook:', error.message);
-      res.status(500).send('Internal Server Error');
-    }
-  }
-);
-
-const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`App running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
