@@ -1,16 +1,11 @@
 {
-  "name": "google-login-webhook",
-  "version": "1.0.0",
-  "main": "server.js",
+  "name": "n8n-auth-backend",
   "scripts": {
-    "start": "node server.js"
+    "start": "node index.js"
   },
   "dependencies": {
-    "express-session": "^1.17.3",
-    "dotenv": "^16.0.3",
     "express": "^4.18.2",
-    "passport": "^0.6.0",
-    "passport-google-oauth20": "^2.0.0",
-    "axios": "^1.6.7"
+    "axios": "^1.6.7",
+    "qs": "^6.11.0"
   }
 }
