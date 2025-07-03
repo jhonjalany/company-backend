@@ -53,7 +53,7 @@ app.get('/auth/google/callback',
       );
 
       if (response.data.success === true) {
-        return res.redirect('https://n8n-app-gn6h.onrender.com/workflow/kLnZzGQKAqVqDTL9 ');
+        return res.redirect('https://converterv3.pages.dev/');
       } else {
         res.status(500).send('Webhook failed');
       }
